@@ -59,7 +59,9 @@ async def get(ctx, dep, num, sem = None):
 
         distr_req_prior = soup.find('span', {'class' : 'catalog-distr'})
 
-        if (distr_req_prior is None):
+        if ('FWS' in full_class_name):
+            distr_req = 'This class is a First-year Writing Seminar and therefore satisfies one FWS requirement.'
+        elif (distr_req_prior is None):
             distr_req = 'N/A: This class does not satisfy any distribution requirements.'
         else:
             distr_req = distr_req_prior.get_text().replace('Distribution Category', '')
@@ -74,7 +76,7 @@ async def get(ctx, dep, num, sem = None):
         prereq_prior = soup.find('span', {'class' : 'catalog-prereq'})
 
         if (prereq_prior is None):
-            prereq = 'N/A: This class does not have any prerequisites.'
+            prereq = 'N/A: This class does not have any prerequisites, or none are listed.'
         else:
             prereq = prereq_prior.get_text().replace(' Prerequisite', '').strip().replace('.', '')
 
