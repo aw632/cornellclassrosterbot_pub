@@ -78,14 +78,14 @@ async def get(ctx, dep, num, sem = None):
         if (prereq_prior is None):
             prereq = 'N/A: This class does not have any prerequisites, or none are listed.'
         else:
-            prereq = prereq_prior.get_text().replace(' Prerequisite', '').strip().replace('.', '')
+            prereq = prereq_prior.get_text().replace('Prerequisites/Corequisites', '').strip().replace('.', '')
 
         embed=discord.Embed(title=dep.upper() + ' ' + num + ': ' + full_class_name, url=url, description=full_class_descr, color=0xb31b1b)
         embed.add_field(name='Credits', value=credit_num, inline=True)
         embed.add_field(name='Distribution Requirements', value=distr_req, inline=True)
         embed.add_field(name='Semesters Offered', value=when_offered, inline=True)
 
-        embed.add_field(name='Prerequisites', value=prereq, inline=True)
+        embed.add_field(name='Prerequisites/Corequisites', value=prereq, inline=True)
         embed.add_field(name='Reddit Search', value='[Click here](https://www.reddit.com/r/Cornell/search?q=' + dep_upper + '+' + num + '&restrict_sr=on&sort=relevance&t=all)', inline=True)
         embed.add_field(name='CUReviews', value='[Click here](https://www.cureviews.org/course/' + dep_upper + '/' + num + ')', inline=True)
         embed.set_footer(text='Questions, suggestions, problems? Write to mihari#4238')
