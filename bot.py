@@ -91,4 +91,4 @@ async def get(ctx, dep, num, sem = None):
         embed.set_footer(text='Questions, suggestions, problems? Write to mihari#4238')
         await ctx.send(embed=embed)
 
-client.run('ODAwMDE5NTYxMjM5Njc0ODkw.YAMCRw.b1cF3kum1JHMtfAXWrD682dBgE0')
+client.run('INSERT TOKEN HERE')
