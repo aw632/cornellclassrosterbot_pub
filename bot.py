@@ -33,7 +33,7 @@ async def get(ctx, dep, num, sem = None):
     r = requests.get(url)
 
     if (r.status_code == 410):
-        embed=discord.Embed(title="410: Class not found~", description="We couldn't locate the class you asked us to find. This is probably because it isn't offered this semester! You might also want to check the spelling of your command.", color=0xb31b1b)
+        embed=discord.Embed(title="410: Class not found~", description="We couldn't locate the class you asked us to find. This is probably because it isn't offered this semester! **Try re-entering your command, but with a different semester at the end (for example: `c!get CS 1110 FA20` - FA20 = Fall 2020).** You might also want to check the spelling of your command.", color=0xb31b1b)
         embed.set_footer(text="Questions, suggestions, problems? Write to mihari#4238")
         await ctx.send(embed=embed)
 
