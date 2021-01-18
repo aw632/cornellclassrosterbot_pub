@@ -88,6 +88,16 @@ async def get(ctx, dep, num, sem = None):
         embed.add_field(name='Prerequisites/Corequisites', value=prereq, inline=True)
         embed.add_field(name='Reddit Search', value='[Click here](https://www.reddit.com/r/Cornell/search?q=' + dep_upper + '+' + num + '&restrict_sr=on&sort=relevance&t=all)', inline=True)
         embed.add_field(name='CUReviews', value='[Click here](https://www.cureviews.org/course/' + dep_upper + '/' + num + ')', inline=True)
+
+        if (dep == 'CS'):
+            cs_wiki_url = f'https://cornellcswiki.gitlab.io/classes/{dep}{num}.html'
+            q = requests.get(cs_wiki_url)
+
+            if (q.status_code == 404):
+                embed.add_field(name="It seems like you're looking up a CS class!", value="However, it seems that this class does not have a CS wiki page :(", inline=True)
+            else:
+                embed.add_field(name="It seems like you're looking up a CS class!", value="[Click me to view the CS Wiki page for this class](https://cornellcswiki.gitlab.io/classes/" + dep + num + ".html)", inline=True)
+
         embed.set_footer(text='Questions, suggestions, problems? Write to mihari#4238')
         await ctx.send(embed=embed)
 
