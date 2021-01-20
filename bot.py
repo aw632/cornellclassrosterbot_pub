@@ -130,6 +130,8 @@ async def get(ctx, dep, num, sem = None):
         ]
         # sem_list = ['SP20', 'FA20', 'SP19', 'FA19', 'SP18', 'FA18', 'SP17', 'FA17', 'SP16', 'FA16', 'SP15', 'FA15', 'SP14', 'FA14'] # everything up to but not including the current semester
 
+        # add one line
+
         # for x in sem_list:
         #     temp_url = 'https://classes.cornell.edu/browse/roster/' + x + '/class/' + f'{dep.upper()}/{num}'
         #     y = requests.head(temp_url)
