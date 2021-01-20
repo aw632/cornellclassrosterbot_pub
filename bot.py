@@ -18,6 +18,68 @@ async def logout(ctx):
     await ctx.send('Shutting down! I\'m audi')
     await client.logout()
 
+def embed_builder(dep, num, url):
+    em = requests.get(url)
+    content = em.content
+    dep_upper = dep.upper()
+
+    soup = BeautifulSoup(content, 'html.parser')
+
+    full_class_name = soup.find(class_='title-coursedescr').get_text()
+
+    full_class_descr = soup.find(class_='catalog-descr').get_text().strip()
+    trun_class_descr = (full_class_descr[:168] + '..') if len(full_class_descr) > 168 else full_class_descr
+
+    # spans = soup.find_all('span', {'class' : 'tooltip-iws'})
+    # prof_name_netid = spans[6]['data-content'] <-- fix this? or leave it...
+
+    credit_num = soup.find('span', {'class' : 'credit-val'}).get_text()
+
+    distr_req_prior = soup.find('span', {'class' : 'catalog-distr'})
+
+    if ('FWS' in full_class_name):
+        distr_req = 'This class is a First-year Writing Seminar and therefore satisfies one FWS requirement.'
+    elif (distr_req_prior is None):
+        distr_req = 'N/A: This class does not satisfy any distribution requirements.'
+    else:
+        distr_req = distr_req_prior.get_text().replace('Distribution Category', '')
+
+    when_offered_prior = soup.find('span', {'class' : 'catalog-when-offered'})
+
+    if (when_offered_prior is None):
+        when_offered = 'N/A: For some reason, we don\'t know when this class is usually offered.'
+    else:
+        when_offered = when_offered_prior.get_text().replace('When Offered', '').strip().replace('.', '')
+
+    prereq_prior = soup.find('span', {'class' : 'catalog-prereq'})
+
+    if (prereq_prior is None):
+        prereq = 'N/A: This class does not have any prerequisites, or none are listed.'
+    else:
+        prereq = prereq_prior.get_text().replace('Prerequisites/Corequisites', '').strip().replace('.', '')
+
+    embed=discord.Embed(title=dep.upper() + ' ' + num + ': ' + full_class_name, url=url, description=full_class_descr, color=0xb31b1b)
+    embed.add_field(name='Credits', value=credit_num, inline=True)
+    embed.add_field(name='Distribution Requirements', value=distr_req, inline=True)
+    embed.add_field(name='Semesters Offered', value=when_offered, inline=True)
+
+    embed.add_field(name='Prerequisites/Corequisites', value=prereq, inline=True)
+    embed.add_field(name='Reddit Search', value='[Click here](https://www.reddit.com/r/Cornell/search?q=' + dep_upper + '+' + num + '&restrict_sr=on&sort=relevance&t=all)', inline=True)
+    embed.add_field(name='CUReviews', value='[Click here](https://www.cureviews.org/course/' + dep_upper + '/' + num + ')', inline=True)
+
+    if (dep == 'CS'):
+        cs_wiki_url = f'https://cornellcswiki.gitlab.io/classes/{dep}{num}.html'
+        q = requests.get(cs_wiki_url)
+
+        if (q.status_code == 404):
+            embed.add_field(name="It seems like you're looking up a CS class!", value="However, it seems that this class does not have a CS wiki page :(", inline=True)
+        else:
+            embed.add_field(name="It seems like you're looking up a CS class!", value="[Click me to view the CS Wiki page for this class](https://cornellcswiki.gitlab.io/classes/" + dep + num + ".html)", inline=True)
+
+    embed.set_footer(text='Questions, suggestions, problems? Write to mihari#4238')
+
+    return embed
+
 # dep = department, num = class number
 # i.e. for the class MATH 2940, dep = MATH and num = 2940.
 # dep can be upper or lower case. a space is required.
@@ -33,9 +95,17 @@ async def get(ctx, dep, num, sem = None):
     r = requests.get(url)
 
     if (r.status_code == 410):
-        embed=discord.Embed(title="410: Class not found~", description="We couldn't locate the class you asked us to find. This is probably because it isn't offered this semester! **Try re-entering your command, but with a different semester at the end (`c!get " + dep_upper + " " + num + " FA20`, where FA20 stands for Fall 2020).** You might also want to check the spelling of your command.", color=0xb31b1b)
-        embed.set_footer(text="Questions, suggestions, problems? Write to mihari#4238")
-        await ctx.send(embed=embed)
+        sem_list = ['SP20', 'FA20', 'SP19', 'FA19', 'SP18', 'FA18', 'SP17', 'FA17', 'SP16', 'FA16', 'SP15', 'FA15', 'SP14', 'FA14'] # everything up to but not including the current semester
+        for x in sem_list:
+            temp_url = 'https://classes.cornell.edu/browse/roster/' + x + '/class/' + f'{dep.upper()}/{num}'
+            y = requests.get(temp_url)
+            if (y.status_code != 410):
+                await ctx.send(embed=embed_builder(dep, num, temp_url))
+                break
+        else:
+            embed=discord.Embed(title="410: Class not found~", description="We couldn't locate the class you asked us to find. It doesn't seem to be a real class, or it may no longer be offered at Cornell. You might also want to check the spelling of your command.", color=0xb31b1b)
+            embed.set_footer(text="Questions, suggestions, problems? Write to mihari#4238")
+            await ctx.send(embed=embed)
 
     elif (r.status_code == 404):
         embed=discord.Embed(title="404: Not found~", description="We couldn't locate the requested semester in student center! Remember that semesters are formatted as XXYY, where XX: SP = Spring, FA = Fall, WI = Winter, and SU = Summer, and where YY: the two digit year.", color=0xb31b1b)
@@ -43,62 +113,6 @@ async def get(ctx, dep, num, sem = None):
         await ctx.send(embed=embed)
 
     else:
-        content = r.content
-
-        soup = BeautifulSoup(content, 'html.parser')
-
-        full_class_name = soup.find(class_='title-coursedescr').get_text()
-
-        full_class_descr = soup.find(class_='catalog-descr').get_text().strip()
-        trun_class_descr = (full_class_descr[:168] + '..') if len(full_class_descr) > 168 else full_class_descr
-
-        # spans = soup.find_all('span', {'class' : 'tooltip-iws'})
-        # prof_name_netid = spans[6]['data-content'] <-- fix this? or leave it...
-
-        credit_num = soup.find('span', {'class' : 'credit-val'}).get_text()
-
-        distr_req_prior = soup.find('span', {'class' : 'catalog-distr'})
-
-        if ('FWS' in full_class_name):
-            distr_req = 'This class is a First-year Writing Seminar and therefore satisfies one FWS requirement.'
-        elif (distr_req_prior is None):
-            distr_req = 'N/A: This class does not satisfy any distribution requirements.'
-        else:
-            distr_req = distr_req_prior.get_text().replace('Distribution Category', '')
-
-        when_offered_prior = soup.find('span', {'class' : 'catalog-when-offered'})
-
-        if (when_offered_prior is None):
-            when_offered = 'N/A: For some reason, we don\'t know when this class is usually offered.'
-        else:
-            when_offered = when_offered_prior.get_text().replace('When Offered', '').strip().replace('.', '')
-
-        prereq_prior = soup.find('span', {'class' : 'catalog-prereq'})
-
-        if (prereq_prior is None):
-            prereq = 'N/A: This class does not have any prerequisites, or none are listed.'
-        else:
-            prereq = prereq_prior.get_text().replace('Prerequisites/Corequisites', '').strip().replace('.', '')
-
-        embed=discord.Embed(title=dep.upper() + ' ' + num + ': ' + full_class_name, url=url, description=full_class_descr, color=0xb31b1b)
-        embed.add_field(name='Credits', value=credit_num, inline=True)
-        embed.add_field(name='Distribution Requirements', value=distr_req, inline=True)
-        embed.add_field(name='Semesters Offered', value=when_offered, inline=True)
-
-        embed.add_field(name='Prerequisites/Corequisites', value=prereq, inline=True)
-        embed.add_field(name='Reddit Search', value='[Click here](https://www.reddit.com/r/Cornell/search?q=' + dep_upper + '+' + num + '&restrict_sr=on&sort=relevance&t=all)', inline=True)
-        embed.add_field(name='CUReviews', value='[Click here](https://www.cureviews.org/course/' + dep_upper + '/' + num + ')', inline=True)
-
-        if (dep == 'CS'):
-            cs_wiki_url = f'https://cornellcswiki.gitlab.io/classes/{dep}{num}.html'
-            q = requests.get(cs_wiki_url)
-
-            if (q.status_code == 404):
-                embed.add_field(name="It seems like you're looking up a CS class!", value="However, it seems that this class does not have a CS wiki page :(", inline=True)
-            else:
-                embed.add_field(name="It seems like you're looking up a CS class!", value="[Click me to view the CS Wiki page for this class](https://cornellcswiki.gitlab.io/classes/" + dep + num + ".html)", inline=True)
-
-        embed.set_footer(text='Questions, suggestions, problems? Write to mihari#4238')
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed_builder(dep, num, url))
 
 client.run('ODAwMDE5NTYxMjM5Njc0ODkw.YAMCRw.FGX2G3WaA85uxAMZcU-Qi1g5mr8')
