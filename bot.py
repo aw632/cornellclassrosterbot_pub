@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import requests
 from bs4 import BeautifulSoup
+import aiohttp
+import asyncio
 
 intents = discord.Intents(messages = True, guilds = True, reactions = True, members = True, presences = True)
 
@@ -80,6 +82,20 @@ def embed_builder(dep, num, url):
 
     return embed
 
+# fetch response code
+async def fetch(session, url):
+    async with session.get(url) as response:
+        return response.status
+
+# fetch response code from a bunch of urls
+async def fetch_all(session, urls):
+    tasks = []
+    for url in urls:
+        task = asyncio.create_task(fetch(session, url))
+        tasks.append(task)
+    results = await asyncio.gather(*tasks)
+    return results
+
 # dep = department, num = class number
 # i.e. for the class MATH 2940, dep = MATH and num = 2940.
 # dep can be upper or lower case. a space is required.
@@ -95,15 +111,38 @@ async def get(ctx, dep, num, sem = None):
     r = requests.get(url)
 
     if (r.status_code == 410):
-        sem_list = ['SP20', 'FA20', 'SP19', 'FA19', 'SP18', 'FA18', 'SP17', 'FA17', 'SP16', 'FA16', 'SP15', 'FA15', 'SP14', 'FA14'] # everything up to but not including the current semester
-        for x in sem_list:
-            temp_url = 'https://classes.cornell.edu/browse/roster/' + x + '/class/' + f'{dep.upper()}/{num}'
-            y = requests.get(temp_url)
-            if (y.status_code != 410):
-                await ctx.send(embed=embed_builder(dep, num, temp_url))
-                break
+        sem_urls = [
+            'https://classes.cornell.edu/browse/roster/SP20/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/FA20/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/SP19/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/FA19/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/SP18/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/FA18/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/SP17/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/FA17/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/SP16/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/FA16/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/SP15/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/FA15/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/SP14/class/' + f'{dep_upper}/{num}',
+            'https://classes.cornell.edu/browse/roster/FA14/class/' + f'{dep_upper}/{num}',
+
+        ]
+        # sem_list = ['SP20', 'FA20', 'SP19', 'FA19', 'SP18', 'FA18', 'SP17', 'FA17', 'SP16', 'FA16', 'SP15', 'FA15', 'SP14', 'FA14'] # everything up to but not including the current semester
+
+        # for x in sem_list:
+        #     temp_url = 'https://classes.cornell.edu/browse/roster/' + x + '/class/' + f'{dep.upper()}/{num}'
+        #     y = requests.head(temp_url)
+        #     if (y.status_code == 200):
+        #         await ctx.send(embed=embed_builder(dep, num, temp_url))
+        #         break
+        async with aiohttp.ClientSession() as session:
+            res_codes = await fetch_all(session, sem_urls)
+        if 200 in res_codes:
+            succ_index = res_codes.index(200)
+            await ctx.send(embed=embed_builder(dep, num, sem_urls[succ_index]))
         else:
-            embed=discord.Embed(title="410: Class not found~", description="We couldn't locate the class you asked us to find. It doesn't seem to be a real class, or it may no longer be offered at Cornell. You might also want to check the spelling of your command.", color=0xb31b1b)
+            embed=discord.Embed(title="410: Class not found~", description="We searched all the way back to 2014, but still couldn't locate the class you asked us to find. It doesn't seem to be a real class, or it may no longer be offered at Cornell. You might also want to check the spelling of your command.", color=0xb31b1b)
             embed.set_footer(text="Questions, suggestions, problems? Write to mihari#4238")
             await ctx.send(embed=embed)
 
