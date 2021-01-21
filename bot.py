@@ -101,6 +101,18 @@ async def fetch_all(session, urls):
 # dep can be upper or lower case. a space is required.
 @client.command()
 async def get(ctx, dep, num, sem = None):
+    # easter 'egg'
+    if (dep == 'PEN' and num == 15):
+        embed=discord.Embed(title="PEN15: [Redacted]", description="Introduction to the methods of CBT and high-level overview of fundamental Hornell concepts. Students will gain significant hands-on experience in the subject matter. Weekly pp sets will be assigned to reinforce understanding of the material. Note from the Instructor (Daddy): the course is well known for being extremely hard and brutal - many students do not feel they can meet the strenuous nightly demands of the course. It is not an easy ride. However it is mandatory for all Hornell majors so good luck.")
+        embed.add_field(name='Credits', value="69", inline=True)
+        embed.add_field(name='Distribution Requirements', value="May satisfy any request ;)", inline=True)
+        embed.add_field(name='Semesters Offered', value="Every night at your mums house", inline=True)
+
+        embed.add_field(name='Prerequisites/Corequisites', value="Good handle on human anatomical parts.", inline=True)
+        embed.add_field(name='Reddit Search', value='[Click here](https://www.reddit.com/r/Cornell/search?q=' + dep_upper + '+' + num + '&restrict_sr=on&sort=relevance&t=all)', inline=True)
+        embed.add_field(name='CUReviews', value='No reviews for this course. Those who take it are too banged up to write reviews.', inline=True)
+        await ctx.send(embed=embed)
+
     url = ''
     if not sem: # if nothing is passed in for semester arg
         url = 'https://classes.cornell.edu/browse/roster/SP21/class/' + f'{dep.upper()}/{num}'
