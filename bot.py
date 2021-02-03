@@ -115,7 +115,7 @@ async def get(ctx, dep, num, sem = None):
         embed.add_field(name='CUReviews', value='No reviews for this course. Those who take it are too banged up to write reviews.', inline=True)
         await ctx.send(embed=embed)
 
-    elif (dep == 'PE' and num = '1173'):
+    elif (dep == 'PE' and num == '1173'):
         embed=discord.Embed(title="PE 1173: Lap Dance", description="Lap Dance, as it is called in the West, is an exciting and erotic dance or striptease performed close to, or sitting on the lap of, a paying customer. Learning the correct posture and basic movements that are used in the many styles of this dance, we will combine movements and isolations of the body and put them together into several different dances, including practice on a man with a wife and kids. Dancing to the variety of “bow chicka wow wow” songs is a fun, relaxing, stress free way to enjoy the day while developing flexibility, body awareness and overall body tone. Very little clothing is worn and the instructor provides lingerie to use in class, if you have a whip please feel free to wear it in class.")
         embed.add_field(name='Credits', value="", inline=True)
         embed.add_field(name='Distribution Requirements', value="", inline=True)
@@ -125,7 +125,6 @@ async def get(ctx, dep, num, sem = None):
         embed.add_field(name='Reddit Search', value='[Click here](https://www.reddit.com/r/Cornell/search?q=PE+1173&restrict_sr=on&sort=relevance&t=all)', inline=True)
         embed.add_field(name='CUReviews', value='', inline=True)
         await ctx.send(embed=embed)
-
 
     else:
         url = ''
