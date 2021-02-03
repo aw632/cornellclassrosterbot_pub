@@ -41,6 +41,8 @@ def embed_builder(dep, num, url):
 
     if ('FWS' in full_class_name):
         distr_req = 'This class is a First-year Writing Seminar and therefore satisfies one FWS requirement.'
+    elif ('PE' in full_class_name):
+        distr_req = 'This class is a PE class and therefore satisfies one PE requirement.'
     elif (distr_req_prior is None):
         distr_req = 'N/A: This class does not satisfy any distribution requirements.'
     else:
@@ -103,7 +105,7 @@ async def fetch_all(session, urls):
 async def get(ctx, dep, num, sem = None):
     # easter 'egg'
     if (dep == 'PEN' and num == '15'):
-        embed=discord.Embed(title="PEN15: [Redacted]", description="Introduction to the methods of CBT and high-level overview of fundamental Hornell concepts. Students will gain significant hands-on experience in the subject matter. Weekly pp sets will be assigned to reinforce understanding of the material. Note from the Instructor (Daddy): the course is well known for being extremely hard and brutal - many students do not feel they can meet the strenuous nightly demands of the course. It is not an easy ride. However it is mandatory for all Hornell majors so good luck.")
+        embed=discord.Embed(title="PEN15: [Redacted]", description="Introduction to the methods of CBT and high-level overview of fundamental Hornell concepts. Students will gain significant hands-on experience in the subject matter. Weekly pp sets will be assigned to reinforce understanding of the material. Note from the Instructor (Daddy): the course is well known for being extremely long and hard - many students do not feel they can meet the strenuous nightly demands of the course. It is not an easy ride. However it is mandatory for all Hornell majors so good luck.")
         embed.add_field(name='Credits', value="69", inline=True)
         embed.add_field(name='Distribution Requirements', value="May satisfy any request ;)", inline=True)
         embed.add_field(name='Semesters Offered', value="Every night at your mums house", inline=True)
@@ -112,6 +114,18 @@ async def get(ctx, dep, num, sem = None):
         embed.add_field(name='Reddit Search', value='[Click here](https://www.reddit.com/r/Cornell/search?q=PEN+15&restrict_sr=on&sort=relevance&t=all)', inline=True)
         embed.add_field(name='CUReviews', value='No reviews for this course. Those who take it are too banged up to write reviews.', inline=True)
         await ctx.send(embed=embed)
+
+    elif (dep == 'PE' and num = '1173'):
+        embed=discord.Embed(title="PE 1173: Lap Dance", description="Lap Dance, as it is called in the West, is an exciting and erotic dance or striptease performed close to, or sitting on the lap of, a paying customer. Learning the correct posture and basic movements that are used in the many styles of this dance, we will combine movements and isolations of the body and put them together into several different dances, including practice on a man with a wife and kids. Dancing to the variety of “bow chicka wow wow” songs is a fun, relaxing, stress free way to enjoy the day while developing flexibility, body awareness and overall body tone. Very little clothing is worn and the instructor provides lingerie to use in class, if you have a whip please feel free to wear it in class.")
+        embed.add_field(name='Credits', value="", inline=True)
+        embed.add_field(name='Distribution Requirements', value="", inline=True)
+        embed.add_field(name='Semesters Offered', value="", inline=True)
+
+        embed.add_field(name='Prerequisites/Corequisites', value="Good handle on human anatomical parts.", inline=True)
+        embed.add_field(name='Reddit Search', value='[Click here](https://www.reddit.com/r/Cornell/search?q=PE+1173&restrict_sr=on&sort=relevance&t=all)', inline=True)
+        embed.add_field(name='CUReviews', value='', inline=True)
+        await ctx.send(embed=embed)
+
 
     else:
         url = ''
