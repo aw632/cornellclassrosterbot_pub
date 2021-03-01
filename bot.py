@@ -11,6 +11,7 @@ from discord_slash.utils import manage_commands
 intents = discord.Intents(messages = True, guilds = True, reactions = True, members = True, presences = True)
 
 client = commands.Bot(command_prefix = 'c!', intents=intents)
+slash = SlashCommand(client, sync_commands=True)
 
 @client.event
 async def on_ready():
