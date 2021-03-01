@@ -14,6 +14,28 @@ async def on_ready():
     await client.change_presence(status=discord.Status.dnd, activity=discord.Game('in Okenshields'))
     print('Bot is ready.')
 
+@slash.slash(
+  name="get",
+  description="gets information about a class",
+  options=[manage_commands.create_option(
+    name = "dep",
+    description = "the subject acronym, e.g. 'CS' for Computer Science",
+    option_type = 3,
+    required = True
+  ), manage_commands.create_option(
+    name = "num",
+    description = "4 digit class number",
+    option_type = 4,
+    required = True
+  ), manage_commands.create_option(
+    name = "sem",
+    description = "look up a specific semester, e.g. FA20 for Fall 2020",
+    option_type = 3,
+    required = False
+  )],
+  guild_ids=None
+)
+
 @client.command()
 @commands.is_owner()
 async def logout(ctx):
@@ -103,28 +125,6 @@ async def fetch_all(session, urls):
 # dep can be upper or lower case. a space is required.
 @client.command()
 async def get(ctx, dep, num, sem = None):
-    # easter 'egg'
-    # if (dep == 'PEN' and num == '15'):
-    #     embed=discord.Embed(title="PEN15: [Redacted]", description="Introduction to the methods of CBT and high-level overview of fundamental Hornell concepts. Students will gain significant hands-on experience in the subject matter. Weekly pp sets will be assigned to reinforce understanding of the material. Note from the Instructor (Daddy): the course is well known for being extremely long and hard - many students do not feel they can meet the strenuous nightly demands of the course. It is not an easy ride. However it is mandatory for all Hornell majors so good luck.")
-    #     embed.add_field(name='Credits', value="69", inline=True)
-    #     embed.add_field(name='Distribution Requirements', value="May satisfy any request ;)", inline=True)
-    #     embed.add_field(name='Semesters Offered', value="Every night at your mums house", inline=True)
-    #
-    #     embed.add_field(name='Prerequisites/Corequisites', value="Good handle on human anatomical parts.", inline=True)
-    #     embed.add_field(name='Reddit Search', value='[Click here](https://www.reddit.com/r/Cornell/search?q=PEN+15&restrict_sr=on&sort=relevance&t=all)', inline=True)
-    #     embed.add_field(name='CUReviews', value='No reviews for this course. Those who take it are too banged up to write reviews.', inline=True)
-    #     await ctx.send(embed=embed)
-    #
-    # elif (dep == 'PE' and num == '1173'):
-    #     embed=discord.Embed(title="PE 1173: Lap Dance", description="Lap Dance, as it is called in the West, is an exciting and erotic dance or striptease performed close to, or sitting on the lap of, a paying customer. Learning the correct posture and basic movements that are used in the many styles of this dance, we will combine movements and isolations of the body and put them together into several different dances, including practice on a man with a wife and kids. Dancing to the variety of “bow chicka wow wow” songs is a fun, relaxing, stress free way to enjoy the day while developing flexibility, body awareness and overall body tone. Very little clothing is worn and the instructor provides lingerie to use in class, if you have a whip please feel free to wear it in class.")
-    #     embed.add_field(name='Credits', value=".", inline=True)
-    #     embed.add_field(name='Distribution Requirements', value=".", inline=True)
-    #     embed.add_field(name='Semesters Offered', value=".", inline=True)
-    #
-    #     embed.add_field(name='Prerequisites/Corequisites', value=".", inline=True)
-    #     embed.add_field(name='Reddit Search', value='[Click here](https://www.reddit.com/r/Cornell/search?q=PE+1173&restrict_sr=on&sort=relevance&t=all)', inline=True)
-    #     embed.add_field(name='CUReviews', value='.', inline=True)
-    #     await ctx.send(embed=embed)
 
     url = ''
     if not sem: # if nothing is passed in for semester arg
