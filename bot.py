@@ -4,6 +4,9 @@ import requests
 from bs4 import BeautifulSoup
 import aiohttp
 import asyncio
+from discord_slash import SlashCommand
+from discord_slash.utils import manage_commands
+
 
 intents = discord.Intents(messages = True, guilds = True, reactions = True, members = True, presences = True)
 
