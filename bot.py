@@ -18,23 +18,6 @@ async def on_ready():
     await client.change_presence(status=discord.Status.dnd, activity=discord.Game('in Okenshields'))
     print('Bot is ready.')
 
-@slash.slash(
-  name="get",
-  description="gets information about a class",
-  options=[manage_commands.create_option(
-    name = "dep",
-    description = "the subject acronym, e.g. 'CS' for Computer Science",
-    option_type = 3,
-    required = True
-  ), manage_commands.create_option(
-    name = "num",
-    description = "4 digit class number",
-    option_type = 4,
-    required = True
-  )],
-  guild_ids=None
-)
-
 @client.command()
 @commands.is_owner()
 async def logout(ctx):
@@ -118,6 +101,23 @@ async def fetch_all(session, urls):
         tasks.append(task)
     results = await asyncio.gather(*tasks)
     return results
+
+@slash.slash(
+  name="get",
+  description="gets information about a class",
+  options=[manage_commands.create_option(
+    name = "dep",
+    description = "the subject acronym, e.g. 'CS' for Computer Science",
+    option_type = 3,
+    required = True
+  ), manage_commands.create_option(
+    name = "num",
+    description = "4 digit class number",
+    option_type = 4,
+    required = True
+  )],
+  guild_ids=None
+)
 
 # dep = department, num = class number
 # i.e. for the class MATH 2940, dep = MATH and num = 2940.
