@@ -31,11 +31,6 @@ async def on_ready():
     description = "4 digit class number",
     option_type = 4,
     required = True
-  ), manage_commands.create_option(
-    name = "sem",
-    description = "look up a specific semester, e.g. FA20 for Fall 2020",
-    option_type = 3,
-    required = False
   )],
   guild_ids=None
 )
@@ -128,13 +123,9 @@ async def fetch_all(session, urls):
 # i.e. for the class MATH 2940, dep = MATH and num = 2940.
 # dep can be upper or lower case. a space is required.
 @client.command()
-async def get(ctx, dep, num, sem = None):
+async def get(ctx, dep, num):
 
-    url = ''
-    if not sem: # if nothing is passed in for semester arg
-        url = 'https://classes.cornell.edu/browse/roster/SP21/class/' + f'{dep.upper()}/{num}'
-    else:
-        url = 'https://classes.cornell.edu/browse/roster/' + sem + '/class/' + f'{dep.upper()}/{num}'
+    url = 'https://classes.cornell.edu/browse/roster/SP21/class/' + f'{dep.upper()}/{num}'
     # url = 'https://classes.cornell.edu/browse/roster/SP21/class/' + f'{dep.upper()}/{num}'
     dep_upper = dep.upper()
     r = requests.get(url)
