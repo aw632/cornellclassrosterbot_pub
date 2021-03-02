@@ -113,7 +113,7 @@ async def fetch_all(session, urls):
   ), manage_commands.create_option(
     name = "num",
     description = "4 digit class number",
-    option_type = 4,
+    option_type = 3,
     required = True
   )],
   guild_ids=None
