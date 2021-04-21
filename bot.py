@@ -39,7 +39,7 @@ def embed_builder(dep, num, url):
     content = em.content
     dep_upper = dep.upper()
 
-    soup = BeautifulSoup(content, "html.parser")
+    soup = BeautifulSoup(content, "lxml")
 
     full_class_name = soup.find(class_="title-coursedescr").get_text()
 

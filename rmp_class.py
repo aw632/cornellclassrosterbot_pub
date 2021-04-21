@@ -1,4 +1,5 @@
 import requests
+import lxml
 from bs4 import BeautifulSoup
 import re
 
@@ -33,7 +34,7 @@ def get_rating(url):
     em = requests.get(url)
     content = em.content
 
-    soup = BeautifulSoup(content, "html.parser")
+    soup = BeautifulSoup(content, "lxml")
 
     numerator = soup.find(
         "div", attrs={"class": "RatingValue__Numerator-qw8sqy-2 liyUjw"}
