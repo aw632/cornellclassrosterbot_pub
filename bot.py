@@ -1,4 +1,5 @@
 import discord
+import lxml
 from discord.ext import commands
 import requests
 import re
