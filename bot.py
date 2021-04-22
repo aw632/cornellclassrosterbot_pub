@@ -102,10 +102,7 @@ def embed_builder(dep, num, url):
         prereq = "N/A: This class does not have any prerequisites, or none are listed."
     else:
         prereq = (
-            prereq_prior.get_text()
-            .replace("Prerequisites/Corequisites", "")
-            .strip()
-            .replace(".", "")
+            prereq_prior.get_text().replace("Prerequisites/Corequisites", "").strip()
         )
 
     embed = discord.Embed(
@@ -209,7 +206,7 @@ async def fetch_all(session, urls):
 @client.command()
 async def get(ctx, dep, num):
 
-    if (dep == "MIHARI") and (num == "1110"):
+    if (dep.upper() == "MIHARI") and (num == "1110"):
         await ctx.send(
             "If you are reading this, it means that Easter Egg worked finally."
         )
