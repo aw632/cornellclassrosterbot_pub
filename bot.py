@@ -9,7 +9,10 @@ import rmp_class
 import asyncio
 from discord_slash import SlashCommand
 from discord_slash.utils import manage_commands
+import json
 
+
+cornell_red = 0xB31B1B
 
 intents = discord.Intents(
     messages=True, guilds=True, reactions=True, members=True, presences=True
@@ -58,14 +61,28 @@ def embed_builder(dep, num, url):
         result = "Staff"
     parsed_prof_name = re.sub("\(.*\)", "", result).strip()
 
-    rmp_url = rmp_class.get_prof_url(parsed_prof_name)
+    pfd = json.load(open("profDictionary.json"))
 
-    if rmp_url == 404:
-        final_url = "This professor doesn't seem to have a RateMyProf page."
-        rating = "N/A"
+    if parsed_prof_name in pfd:
+        dictValue = pfd[parsed_prof_name]
+        rating = dictValue[0]
+        final_url = dictValue[1]
     else:
-        final_url = rmp_url
-        rating = rmp_class.get_rating(rmp_url)
+        rmp_url = rmp_class.get_prof_url(parsed_prof_name)
+
+        if rmp_url == 404:
+            final_url = "This professor doesn't seem to have a RateMyProf page."
+            rating = "N/A"
+        else:
+            final_url = rmp_url
+            rating = rmp_class.get_rating(rmp_url)
+
+        pfd[parsed_prof_name] = (rating, final_url)
+
+    j = json.dumps(pfd)
+    with open("profDictionary.json", "w") as f:
+        f.write(j)
+        f.close()
 
     credit_num = soup.find("span", {"class": "credit-val"}).get_text()
 
@@ -109,7 +126,7 @@ def embed_builder(dep, num, url):
         title=dep.upper() + " " + num + ": " + full_class_name,
         url=url,
         description=full_class_descr,
-        color=0xB31B1B,
+        color=cornell_red,
     )
     embed.add_field(name="Credits", value=credit_num, inline=True)
     embed.add_field(name="Distribution Requirements", value=distr_req, inline=True)
@@ -250,16 +267,7 @@ async def get(ctx, dep, num):
                 "https://classes.cornell.edu/browse/roster/FA14/class/"
                 + f"{dep_upper}/{num}",
             ]
-            # sem_list = ['SP20', 'FA20', 'SP19', 'FA19', 'SP18', 'FA18', 'SP17', 'FA17', 'SP16', 'FA16', 'SP15', 'FA15', 'SP14', 'FA14'] # everything up to but not including the current semester
 
-            # add one line
-
-            # for x in sem_list:
-            #     temp_url = 'https://classes.cornell.edu/browse/roster/' + x + '/class/' + f'{dep.upper()}/{num}'
-            #     y = requests.head(temp_url)
-            #     if (y.status_code == 200):
-            #         await ctx.send(embed=embed_builder(dep, num, temp_url))
-            #         break
             async with aiohttp.ClientSession() as session:
                 res_codes = await fetch_all(session, sem_urls)
             if 200 in res_codes:
@@ -269,7 +277,7 @@ async def get(ctx, dep, num):
                 embed = discord.Embed(
                     title="410: Class not found~",
                     description="We searched all the way back to 2014, but still couldn't locate the class you asked us to find. It doesn't seem to be a real class, or it may no longer be offered at Cornell. You might also want to check the spelling of your command.",
-                    color=0xB31B1B,
+                    color=cornell_red,
                 )
                 embed.set_footer(
                     text="Questions, suggestions, problems? Write to mihari#4238"
@@ -280,7 +288,7 @@ async def get(ctx, dep, num):
             embed = discord.Embed(
                 title="404: Not found~",
                 description="We couldn't locate the requested semester in student center! Remember that semesters are formatted as XXYY, where XX: SP = Spring, FA = Fall, WI = Winter, and SU = Summer, and where YY: the two digit year.",
-                color=0xB31B1B,
+                color=cornell_red,
             )
             embed.set_footer(
                 text="Questions, suggestions, problems? Write to mihari#4238"

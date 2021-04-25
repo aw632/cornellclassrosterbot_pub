@@ -47,7 +47,7 @@ def get_rating(url):
 
 
 def main():
-    result = get_prof_url("Michael Clarkson")
+    result = get_prof_url("Testing Name")
     rating = get_rating(result)
     # print(result)
     print(rating)
