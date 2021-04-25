@@ -298,5 +298,8 @@ async def get(ctx, dep, num):
         else:
             await ctx.send(embed=embed_builder(dep, num, url))
 
+t = open("token.txt")
+lines = t.readlines()
+token = lines[0]
 
-client.run("ODAwMDE5NTYxMjM5Njc0ODkw.YAMCRw.FGX2G3WaA85uxAMZcU-Qi1g5mr8")
+client.run(token)
