@@ -4,4 +4,3 @@ requests
 aiohttp
 discord-py-slash-command
 lxml
-json
