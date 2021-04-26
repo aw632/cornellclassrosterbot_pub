@@ -24,8 +24,9 @@ slash = SlashCommand(client, sync_commands=True)
 
 
 @client.command()
+@commands.is_owner()
 async def servers(ctx):
-    servers = list(bot.guilds)
+    servers = list(client.guilds)
     await ctx.send(f"Connected on {str(len(servers))} servers:")
     await ctx.send("\n".join(guild.name for guild in guilds))
 
