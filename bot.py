@@ -10,6 +10,7 @@ import asyncio
 from discord_slash import SlashCommand
 from discord_slash.utils import manage_commands
 import json
+import os
 
 
 cornell_red = 0xB31B1B
@@ -20,6 +21,13 @@ intents = discord.Intents(
 
 client = commands.Bot(command_prefix="c!", intents=intents)
 slash = SlashCommand(client, sync_commands=True)
+
+
+@client.command()
+async def servers(ctx):
+    servers = list(bot.guilds)
+    await ctx.send(f"Connected on {str(len(servers))} servers:")
+    await ctx.send("\n".join(guild.name for guild in guilds))
 
 
 @client.event
@@ -298,8 +306,7 @@ async def get(ctx, dep, num):
         else:
             await ctx.send(embed=embed_builder(dep, num, url))
 
-t = open("token.txt")
-lines = t.readlines()
-token = lines[0]
+
+token = os.environ.get("TOKEN")
 
 client.run(token)
