@@ -4,3 +4,4 @@ requests
 aiohttp
 discord-py-slash-command
 lxml
+fastDamerauLevenshtein

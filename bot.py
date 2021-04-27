@@ -10,6 +10,8 @@ import asyncio
 from discord_slash import SlashCommand
 from discord_slash.utils import manage_commands
 import json
+import pickle
+from fastDamerauLevenshtein import damerauLevenshtein
 import os
 
 
@@ -44,6 +46,21 @@ async def on_ready():
 async def logout(ctx):
     await ctx.send("Shutting down! I'm audi")
     await client.logout()
+
+
+def listToString(s):
+    str1 = ", "
+    return str1.join(s)
+
+
+def get_most_matching(target, threshold, namesList):
+    matchers = []
+    for name in namesList:
+        result = damerauLevenshtein(target, name, similarity=True)
+        if result >= threshold:
+            matchers.append(name)
+
+    return matchers
 
 
 def embed_builder(dep, num, url):
@@ -238,15 +255,19 @@ async def get(ctx, dep, num):
         )
     else:
         url = (
-            "https://classes.cornell.edu/browse/roster/SP21/class/"
+            "https://classes.cornell.edu/browse/roster/FA21/class/"
             + f"{dep.upper()}/{num}"
         )
         # url = 'https://classes.cornell.edu/browse/roster/SP21/class/' + f'{dep.upper()}/{num}'
         dep_upper = dep.upper()
         r = requests.get(url)
 
+        merged_string = f"{dep_upper} {num}"
+
         if r.status_code == 410:
             sem_urls = [
+                "https://classes.cornell.edu/browse/roster/SP21/class/"
+                + f"{dep_upper}/{num}",
                 "https://classes.cornell.edu/browse/roster/SP20/class/"
                 + f"{dep_upper}/{num}",
                 "https://classes.cornell.edu/browse/roster/FA20/class/"
@@ -283,11 +304,22 @@ async def get(ctx, dep, num):
                 succ_index = res_codes.index(200)
                 await ctx.send(embed=embed_builder(dep, num, sem_urls[succ_index]))
             else:
+                # with open("classnames.txt", "rb") as fp:
+                #     x = pickle.load(fp)
+
+                # typos = listToString(get_most_matching(merged_string, 0.7, x))
                 embed = discord.Embed(
                     title="410: Class not found~",
                     description="We searched all the way back to 2014, but still couldn't locate the class you asked us to find. It doesn't seem to be a real class, or it may no longer be offered at Cornell. You might also want to check the spelling of your command.",
                     color=cornell_red,
                 )
+                # if len(typos) > 0:
+                #     embed.add_field(
+                #         name="Perhaps you meant:",
+                #         value=typos,
+                #         inline=True,
+                #     )
+
                 embed.set_footer(
                     text="Questions, suggestions, problems? Write to mihari#4238"
                 )
@@ -305,9 +337,25 @@ async def get(ctx, dep, num):
             await ctx.send(embed=embed)
 
         else:
+            # with open("classnames.txt", "rb") as fp:
+            #     x = pickle.load(fp)
+
+            # if merged_string not in x:
+            #     x.add(merged_string)
+
+            # with open("classnames.txt", "wb") as fp:
+            #     pickle.dump(x, fp)
+
             await ctx.send(embed=embed_builder(dep, num, url))
 
 
-token = os.environ.get("TOKEN")
+debug = False
+if not debug:
+    token = os.environ.get("TOKEN")
+else:
+    # Create a file called token.txt, and only copy paste the token, don't put anything else, no quotes no empty spaces nothing.
+    t = open("token.txt")
+    lines = t.readlines()
+    token = lines[0]
 
 client.run(token)
