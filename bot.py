@@ -253,6 +253,10 @@ async def get(ctx, dep, num):
         await ctx.send(
             "If you are reading this, it means that Easter Egg worked finally."
         )
+    elif (dep.upper() == "ANTHR") and (num == "3352"):
+        await ctx.send(
+            "The class is blocked from classrosterbot. Please view it at classes.cornell.edu if you want it."
+        )
     else:
         url = (
             "https://classes.cornell.edu/browse/roster/FA21/class/"
