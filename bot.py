@@ -52,8 +52,10 @@ async def logout(ctx):
 @commands.is_owner()
 async def timer(ctx, first, second):
     first_shifted = (int(first) >> 22) + 1420070400000
-    second_shifted = (int(first) >> 22) + 1420070400000
-    length = (first_shifted - second_shifted) / 1000
+    print(first_shifted)
+    second_shifted = (int(second) >> 22) + 1420070400000
+    print(second_shifted)
+    length = (second_shifted - first_shifted) / 1000
     await ctx.send(f"Time between first and second was {str(length)} seconds.")
 
 
@@ -362,7 +364,7 @@ async def get(ctx, dep, num):
             await ctx.send(embed=embed_builder(dep, num, url))
 
 
-debug = False
+debug = True
 if not debug:
     token = os.environ.get("TOKEN")
 else:
