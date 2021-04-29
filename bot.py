@@ -51,8 +51,8 @@ async def logout(ctx):
 @client.command()
 @commands.is_owner()
 async def timer(ctx, first, second):
-    first_shifted = (first >> 22) + 1420070400000
-    second_shifted = (first >> 22) + 1420070400000
+    first_shifted = (int(first) >> 22) + 1420070400000
+    second_shifted = (int(first) >> 22) + 1420070400000
     length = (first_shifted - second_shifted) / 1000
     await ctx.send(f"Time between first and second was {str(length)} seconds.")
 
