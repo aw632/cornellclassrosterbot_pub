@@ -48,6 +48,15 @@ async def logout(ctx):
     await client.logout()
 
 
+@client.command()
+@commands.is_owner()
+async def timer(ctx, first, second):
+    first_shifted = (first >> 22) + 1420070400000
+    second_shifted = (first >> 22) + 1420070400000
+    length = (first_shifted - second_shifted) / 1000
+    await ctx.send(f"Time between first and second was {str(length)} seconds.")
+
+
 def listToString(s):
     str1 = ", "
     return str1.join(s)
@@ -183,7 +192,7 @@ def embed_builder(dep, num, url):
     )
     embed.add_field(name="RateMyProfessor Link", value=final_url, inline=True)
     # TODO: put last offered somewhere else, and instead include median grade.
-    embed.add_field(name="Last Offered", value=semester, inline=True)
+    embed.add_field(name="Latest Offering", value=semester, inline=True)
 
     if dep_upper == "CS":
         cs_wiki_url = f"https://cornellcswiki.gitlab.io/classes/{dep_upper}{num}.html"
@@ -308,7 +317,7 @@ async def get(ctx, dep, num):
                 succ_index = res_codes.index(200)
                 await ctx.send(embed=embed_builder(dep, num, sem_urls[succ_index]))
             else:
-                # with open("classnames.txt", "rb") as fp:
+                # with open("classnames.bin", "rb") as fp:
                 #     x = pickle.load(fp)
 
                 # typos = listToString(get_most_matching(merged_string, 0.7, x))
@@ -341,13 +350,13 @@ async def get(ctx, dep, num):
             await ctx.send(embed=embed)
 
         else:
-            # with open("classnames.txt", "rb") as fp:
+            # with open("classnames.bin", "rb") as fp:
             #     x = pickle.load(fp)
 
             # if merged_string not in x:
             #     x.add(merged_string)
 
-            # with open("classnames.txt", "wb") as fp:
+            # with open("classnames.bin", "wb") as fp:
             #     pickle.dump(x, fp)
 
             await ctx.send(embed=embed_builder(dep, num, url))
