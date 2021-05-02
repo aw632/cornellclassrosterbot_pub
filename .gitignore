@@ -1,3 +1,7 @@
 bs4test.py
 token.txt
 profDictionary.json
+crb/
+.pytest_cache/
+.vscode/
+__pycache__/
