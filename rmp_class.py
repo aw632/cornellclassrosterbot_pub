@@ -36,10 +36,10 @@ def get_rating(url):
 
     soup = BeautifulSoup(content, "lxml")
 
-    numerator_pre = soup.find(
+    numerator = soup.find(
         "div", attrs={"class": "RatingValue__Numerator-qw8sqy-2 liyUjw"}
     ).text
-    if numerator_pre == "N/A":
+    if numerator == "N/A":
         denominator = ""
     else:
         denominator = soup.find(

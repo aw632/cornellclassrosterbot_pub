@@ -45,16 +45,14 @@ async def on_ready():
 @commands.is_owner()
 async def logout(ctx):
     await ctx.send("Shutting down! I'm audi")
-    await client.logout()
+    await client.close()
 
 
 @client.command()
 @commands.is_owner()
 async def timer(ctx, first, second):
     first_shifted = (int(first) >> 22) + 1420070400000
-    print(first_shifted)
     second_shifted = (int(second) >> 22) + 1420070400000
-    print(second_shifted)
     length = (second_shifted - first_shifted) / 1000
     await ctx.send(f"Time between first and second was {str(length)} seconds.")
 
@@ -112,16 +110,18 @@ def get_cswiki(num):
         num (string): class number
     """
     cs_wiki_url = f"https://cornellcswiki.gitlab.io/classes/CS{num}.html"
-    q = requests.head(url)
+    q = requests.head(cs_wiki_url)
 
     name = "It seems like you're looking up a CS class!"
 
     if q.status_code == 404:
         value = "However, it seems that this class does not have a CS wiki page :("
     else:
-        value = "[Click me to view the CS Wiki page for this class](https://cornellcswiki.gitlab.io/classes/CS"
-        +num
-        +".html)"
+        value = (
+            "[Click me to view the CS Wiki page for this class](https://cornellcswiki.gitlab.io/classes/CS"
+            + num
+            + ".html)"
+        )
 
     return name, value
 
@@ -135,14 +135,69 @@ def safe_get_prof(soup, error_message):
         soup (string): BeautifulSoup representation of a webpage.
         error_message (string): What to return if we encounter NoneType.
     """
-    i_result = soup.select("li[class='instructors'] > p > span")
-    if i_result is not None:
+    parsed_prof_name_lst = []
+    i_result = soup.find("li", {"class": "instructors"}).select("p > span")
+    if i_result != []:
         result = [x["data-content"] for x in i_result]
         parsed_prof_name_lst = [re.sub("\(.*\)", "", res).strip() for res in result]
     else:
-        parsed_prof_name_lst = [error_message]
-
+        parsed_prof_name_lst.append(error_message)
     return parsed_prof_name_lst
+
+
+def make_rmp_list(prof_list):
+    """Returns a list of tuples of form (profname1, rating1, url1).
+
+    Args:
+        prof_list (string list): List of professor names for a class.
+    """
+    pfd = json.load(open("profDictionary.json"))
+
+    rating_lst = []
+    url_lst = []
+    for parsed_prof_name in prof_list:
+        if parsed_prof_name in pfd:
+            dictValue = pfd[parsed_prof_name]
+            rating_lst.append(dictValue[0])
+            url_lst.append(dictValue[1])
+        else:
+            rmp_url = rmp_class.get_prof_url(parsed_prof_name)
+
+            if rmp_url == 404:
+                final_url = "N/A"
+                rating = "N/A"
+            else:
+                final_url = rmp_url
+                rating = rmp_class.get_rating(rmp_url)
+
+            url_lst.append(final_url)
+            rating_lst.append(rating)
+
+            pfd[parsed_prof_name] = (rating, final_url)
+
+    j = json.dumps(pfd)
+    with open("profDictionary.json", "w") as f:
+        f.write(j)
+        f.close()
+
+    result_list = list(zip(prof_list, rating_lst, url_lst))
+    return result_list
+
+
+def value_string_builder(lst):
+    """Builds a string formatted in such way: [prof name, rating](url)
+
+    Args:
+        lst (list): list of tuples (prof name, rating, url)
+    """
+    result = ""
+    # print(lst)
+    for tup in lst:
+        if tup[2] == "N/A":
+            result = result + "{}, {}\n".format(tup[0], tup[1])
+        else:
+            result = result + "[{}, {}]({})\n".format(tup[0], tup[1], tup[2])
+    return result
 
 
 def embed_builder(dep, num, url):
@@ -157,29 +212,7 @@ def embed_builder(dep, num, url):
 
     parsed_prof_name_lst = safe_get_prof(soup, "Staff")
 
-    pfd = json.load(open("profDictionary.json"))
-
-    for name in parsed_prof_name_lst:
-        if parsed_prof_name in pfd:
-            dictValue = pfd[parsed_prof_name]
-            rating = dictValue[0]
-            final_url = dictValue[1]
-        else:
-            rmp_url = rmp_class.get_prof_url(parsed_prof_name)
-
-            if rmp_url == 404:
-                final_url = "This professor doesn't seem to have a RateMyProf page."
-                rating = "N/A"
-            else:
-                final_url = rmp_url
-                rating = rmp_class.get_rating(rmp_url)
-
-            pfd[parsed_prof_name] = (rating, final_url)
-
-    j = json.dumps(pfd)
-    with open("profDictionary.json", "w") as f:
-        f.write(j)
-        f.close()
+    result_list = make_rmp_list(parsed_prof_name_lst)
 
     credit_num = safe_get_data(
         soup, "credit-val", "For some reason, the number of credits is not listed."
@@ -198,13 +231,13 @@ def embed_builder(dep, num, url):
             "This class is a PE class and therefore satisfies one PE requirement."
         )
     else:
-        distr_req = distr_req_prior.get_text().replace("Distribution Category", "")
+        distr_req = distr_req_prior.replace("Distribution Category", "")
 
     when_offered = safe_get_data(
         soup,
         "catalog-when-offered",
         "N/A: For some reason, we don't know when this class is usually offered.",
-    )
+    ).replace("When Offered", "")
 
     prereq = safe_get_data(
         soup,
@@ -242,15 +275,15 @@ def embed_builder(dep, num, url):
         inline=True,
     )
 
-    embed.add_field(
-        name="Professor", value=parsed_prof_name + ", " + rating, inline=True
-    )
-    embed.add_field(name="RateMyProfessor Link", value=final_url, inline=True)
+    prof_bunch = value_string_builder(result_list)
+    # print(prof_bunch)
+    embed.add_field(name="Professor(s)", value=prof_bunch, inline=True)
+    # embed.add_field(name="RateMyProfessor Link", value="Placeholder", inline=True)
     # TODO: put last offered somewhere else, and instead include median grade.
     embed.add_field(name="Latest Offering", value=semester, inline=True)
 
     if dep_upper == "CS":
-        n, v = cs_getwiki(num)
+        n, v = get_cswiki(num)
         embed.add_field(
             name=n,
             value=v,
@@ -405,7 +438,7 @@ async def get(ctx, dep, num):
             await ctx.send(embed=embed_builder(dep, num, url))
 
 
-debug = False
+debug = True
 if not debug:
     token = os.environ.get("TOKEN")
 else:
