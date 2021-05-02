@@ -74,6 +74,77 @@ def get_most_matching(target, threshold, namesList):
     return matchers
 
 
+def get_descriptions(soup):
+    """Returns the Full Class Name and Full Class Description from a site.
+
+    Args:
+        soup (BeautifulSoup Object): represents the webpage in bs4
+    """
+    full_class_name = soup.find(class_="title-coursedescr").get_text()
+
+    full_class_descr = soup.find(class_="catalog-descr").get_text().strip()
+
+    return full_class_name, full_class_descr
+
+
+def safe_get_data(soup, html_class, error_message):
+    """Safely (i.e. can recognize NoneType) retrieves relevant data.
+    Note: works with span only
+
+    Args:
+        soup (BeautifulSoup Object): represents the webpage in bs4
+        html_class (string): the htmlt id of the relevant data in soup object
+        error_mesasge (string): the specified error message if NoneType object is found.
+    """
+    try:
+        result = soup.find("span", {"class": html_class}).get_text().strip()
+    except AttributeError:
+        result = error_message
+
+    return result
+
+
+def get_cswiki(num):
+    """If the class is a CS class, attempt to find the relevant CS wiki page.
+    Return relevant strings for embed builder.
+
+    Args:
+        num (string): class number
+    """
+    cs_wiki_url = f"https://cornellcswiki.gitlab.io/classes/CS{num}.html"
+    q = requests.head(url)
+
+    name = "It seems like you're looking up a CS class!"
+
+    if q.status_code == 404:
+        value = "However, it seems that this class does not have a CS wiki page :("
+    else:
+        value = "[Click me to view the CS Wiki page for this class](https://cornellcswiki.gitlab.io/classes/CS"
+        +num
+        +".html)"
+
+    return name, value
+
+
+def safe_get_prof(soup, error_message):
+    """Safely (i.e. can handle NoneType) gets prof name from webpage represented as a
+    soup object. Because the web scraping protocol is slightly modifed, we don't
+    include it in the other helper method.
+
+    Args:
+        soup (string): BeautifulSoup representation of a webpage.
+        error_message (string): What to return if we encounter NoneType.
+    """
+    i_result = soup.select("li[class='instructors'] > p > span")
+    if i_result is not None:
+        result = [x["data-content"] for x in i_result]
+        parsed_prof_name_lst = [re.sub("\(.*\)", "", res).strip() for res in result]
+    else:
+        parsed_prof_name_lst = [error_message]
+
+    return parsed_prof_name_lst
+
+
 def embed_builder(dep, num, url):
     semester = re.search("([SF][A-Z]*[0-9]+)", url).group(1)
     em = requests.get(url)
@@ -82,48 +153,43 @@ def embed_builder(dep, num, url):
 
     soup = BeautifulSoup(content, "lxml")
 
-    full_class_name = soup.find(class_="title-coursedescr").get_text()
+    full_class_name, full_class_descr = get_descriptions(soup)
 
-    full_class_descr = soup.find(class_="catalog-descr").get_text().strip()
-    trun_class_descr = (
-        (full_class_descr[:168] + "..")
-        if len(full_class_descr) > 168
-        else full_class_descr
-    )
-
-    i_result = soup.select_one("li[class='instructors'] > p > span")
-    if i_result is not None:
-        result = i_result["data-content"]
-    else:
-        result = "Staff"
-    parsed_prof_name = re.sub("\(.*\)", "", result).strip()
+    parsed_prof_name_lst = safe_get_prof(soup, "Staff")
 
     pfd = json.load(open("profDictionary.json"))
 
-    if parsed_prof_name in pfd:
-        dictValue = pfd[parsed_prof_name]
-        rating = dictValue[0]
-        final_url = dictValue[1]
-    else:
-        rmp_url = rmp_class.get_prof_url(parsed_prof_name)
-
-        if rmp_url == 404:
-            final_url = "This professor doesn't seem to have a RateMyProf page."
-            rating = "N/A"
+    for name in parsed_prof_name_lst:
+        if parsed_prof_name in pfd:
+            dictValue = pfd[parsed_prof_name]
+            rating = dictValue[0]
+            final_url = dictValue[1]
         else:
-            final_url = rmp_url
-            rating = rmp_class.get_rating(rmp_url)
+            rmp_url = rmp_class.get_prof_url(parsed_prof_name)
 
-        pfd[parsed_prof_name] = (rating, final_url)
+            if rmp_url == 404:
+                final_url = "This professor doesn't seem to have a RateMyProf page."
+                rating = "N/A"
+            else:
+                final_url = rmp_url
+                rating = rmp_class.get_rating(rmp_url)
+
+            pfd[parsed_prof_name] = (rating, final_url)
 
     j = json.dumps(pfd)
     with open("profDictionary.json", "w") as f:
         f.write(j)
         f.close()
 
-    credit_num = soup.find("span", {"class": "credit-val"}).get_text()
+    credit_num = safe_get_data(
+        soup, "credit-val", "For some reason, the number of credits is not listed."
+    )
 
-    distr_req_prior = soup.find("span", {"class": "catalog-distr"})
+    distr_req_prior = safe_get_data(
+        soup,
+        "catalog-distr",
+        "N/A: This class does not satisfy any distribution requirements.",
+    )
 
     if "FWS" in full_class_name:
         distr_req = "This class is a First-year Writing Seminar and therefore satisfies one FWS requirement."
@@ -131,33 +197,20 @@ def embed_builder(dep, num, url):
         distr_req = (
             "This class is a PE class and therefore satisfies one PE requirement."
         )
-    elif distr_req_prior is None:
-        distr_req = "N/A: This class does not satisfy any distribution requirements."
     else:
         distr_req = distr_req_prior.get_text().replace("Distribution Category", "")
 
-    when_offered_prior = soup.find("span", {"class": "catalog-when-offered"})
+    when_offered = safe_get_data(
+        soup,
+        "catalog-when-offered",
+        "N/A: For some reason, we don't know when this class is usually offered.",
+    )
 
-    if when_offered_prior is None:
-        when_offered = (
-            "N/A: For some reason, we don't know when this class is usually offered."
-        )
-    else:
-        when_offered = (
-            when_offered_prior.get_text()
-            .replace("When Offered", "")
-            .strip()
-            .replace(".", "")
-        )
-
-    prereq_prior = soup.find("span", {"class": "catalog-prereq"})
-
-    if prereq_prior is None:
-        prereq = "N/A: This class does not have any prerequisites, or none are listed."
-    else:
-        prereq = (
-            prereq_prior.get_text().replace("Prerequisites/Corequisites", "").strip()
-        )
+    prereq = safe_get_data(
+        soup,
+        "catalog-prereq",
+        "N/A: This class does not have any prerequisites, or none are listed.",
+    ).replace("Prerequisites/Corequisites", "")
 
     embed = discord.Embed(
         title=dep.upper() + " " + num + ": " + full_class_name,
@@ -197,24 +250,12 @@ def embed_builder(dep, num, url):
     embed.add_field(name="Latest Offering", value=semester, inline=True)
 
     if dep_upper == "CS":
-        cs_wiki_url = f"https://cornellcswiki.gitlab.io/classes/{dep_upper}{num}.html"
-        q = requests.get(cs_wiki_url)
-
-        if q.status_code == 404:
-            embed.add_field(
-                name="It seems like you're looking up a CS class!",
-                value="However, it seems that this class does not have a CS wiki page :(",
-                inline=True,
-            )
-        else:
-            embed.add_field(
-                name="It seems like you're looking up a CS class!",
-                value="[Click me to view the CS Wiki page for this class](https://cornellcswiki.gitlab.io/classes/"
-                + dep_upper
-                + num
-                + ".html)",
-                inline=True,
-            )
+        n, v = cs_getwiki(num)
+        embed.add_field(
+            name=n,
+            value=v,
+            inline=True,
+        )
 
     embed.set_footer(text="Questions, suggestions, problems? Write to mihari#4238")
 

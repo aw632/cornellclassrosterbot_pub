@@ -36,12 +36,15 @@ def get_rating(url):
 
     soup = BeautifulSoup(content, "lxml")
 
-    numerator = soup.find(
+    numerator_pre = soup.find(
         "div", attrs={"class": "RatingValue__Numerator-qw8sqy-2 liyUjw"}
     ).text
-    denominator = soup.find(
-        "div", attrs={"class": "RatingValue__Denominator-qw8sqy-4 UqFtE"}
-    ).text
+    if numerator_pre == "N/A":
+        denominator = ""
+    else:
+        denominator = soup.find(
+            "div", attrs={"class": "RatingValue__Denominator-qw8sqy-4 UqFtE"}
+        ).text
 
     return (numerator + denominator).replace(" ", "")
 
