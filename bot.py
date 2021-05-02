@@ -438,7 +438,7 @@ async def get(ctx, dep, num):
             await ctx.send(embed=embed_builder(dep, num, url))
 
 
-debug = True
+debug = False
 if not debug:
     token = os.environ.get("TOKEN")
 else:
