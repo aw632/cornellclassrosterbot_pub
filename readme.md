@@ -21,3 +21,9 @@ The bot is very simple. There is only one command, `c!get`. It takes in two argu
 `c!get MMMMM 1111` will return an error message, because no such class exists at Cornell.
 
 ![sample output](https://i.imgur.com/e7nLQRy.png)
+
+## TODO
+
+- Fix bug for CEE 4090
+- Add crosslists
+- Integrate with median grades google sheet
