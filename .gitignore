@@ -1,5 +1,7 @@
 bs4test.py
 token.txt
+profDictionary.json
+classnames.bin
 crb/
 .pytest_cache/
 .vscode/
